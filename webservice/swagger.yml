@@ -1,0 +1,600 @@
+swagger: '2.0'
+info:
+  version: "1.0.0"
+  title: EEMI-WS-2016
+
+paths:
+  /api/hello:
+    get:
+      description: |
+        Says hello, useful for testing
+      parameters:
+        -
+          name: S-Token
+          in: header
+          description: api token
+          required: true
+          type: string
+      responses:
+        200:
+          description: Successful response will just say "hello" and the associated username
+          schema:
+            type: string
+      tags:
+        - api
+        - test
+  /api/renew:
+    get:
+      description: |
+        Renews the S-Token (use it once in a while)
+      parameters:
+        -
+          name: S-Token
+          in: header
+          description: api token
+          required: true
+          type: string
+      responses:
+        # Response code
+        200:
+          description: |
+            same structure as a regular login
+          schema:
+            properties:
+              uid:
+                type: string
+              token:
+                type: string
+      tags:
+        - user
+  /register:
+    post:
+      consumes:
+        - multipart/form-data
+      description: |
+        registers a new user in the system
+      parameters:
+        -
+          name: username
+          in: formData
+          description: the desired username
+          required: true
+          type: string
+        -
+          name: password
+          in: formData
+          description: the associated password
+          required: true
+          type: string
+      responses:
+        200:
+          description: successful registration
+          schema:
+            properties:
+              userid:
+                type: string
+        409:
+          description: conflict / user is already registered
+      tags:
+        - user
+  /login:
+    post:
+      consumes:
+        - multipart/form-data
+      description: |
+        performs a login
+      parameters:
+        -
+          name: username
+          in: formData
+          description: login
+          required: true
+          type: string
+        -
+          name: password
+          in: formData
+          description: the associated password
+          required: true
+          type: string
+      responses:
+        200:
+          description: successful login
+          schema:
+            properties:
+              uid:
+                type: string
+              token:
+                type: string
+
+      tags:
+        - user
+  /api/beacons:
+    get:
+      consumes:
+        - multipart/form-data
+      description: |
+        lists the currently available beacons
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+      responses:
+        200:
+          description: lists all the currently active beacons
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Beacon'
+      tags:
+        - beacons
+    post:
+      consumes:
+        - multipart/form-data
+      description: |
+        posts an encounter between a beacon and a user
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+        -
+          name: beaconid
+          type: string
+          in: formData
+          required: true
+        -
+          name: date
+          description: the time at which that event occured, if needed (in case of delayed posting, for instance)
+          in: formData
+          type: string
+          format: 'date-time'
+      responses:
+        200:
+          description: successful saving of that encounter
+      tags:
+        - beacons
+  /api/beacons/{userid}:
+    post:
+      consumes:
+        - multipart/form-data
+      description: |
+        lists all the encounters between the current user and the beacons
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+        -
+          name: userid
+          type: string
+          in: path
+          required: true
+        -
+          name: start
+          type: string
+          format: 'date-time'
+          in: formData
+          description: start of the deletion period (default distant past)
+        -
+          name: end
+          type: string
+          format: 'date-time'
+          in: formData
+          description: end of the deletion period (default  now)
+      responses:
+        200:
+          description: list of all the encounters for this user
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Encounter'
+      tags:
+        - beacons
+    delete:
+      consumes:
+        - multipart/form-data
+      description: |
+        deletes all the encounters between the current user and the beacons (optionally between two dates)
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+        -
+          name: userid
+          type: string
+          in: path
+          required: true
+        -
+          name: start
+          type: string
+          format: 'date-time'
+          in: formData
+          description: start of the deletion period (default distant past)
+        -
+          name: end
+          type: string
+          format: 'date-time'
+          in: formData
+          description: end of the deletion period (default  now)
+
+      responses:
+        200:
+          description: success
+      tags:
+         - beacons
+  /api/beacons/{beaconid}/encounters:
+    post:
+      consumes:
+        - multipart/form-data
+      description: |
+        lists all the encounters between the beacon and the users
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+        -
+          name: beaconid
+          type: string
+          in: path
+          required: true
+        -
+          name: start
+          type: string
+          format: 'date-time'
+          in: formData
+          description: start of the deletion period (default distant past)
+        -
+          name: end
+          type: string
+          format: 'date-time'
+          in: formData
+          description: end of the deletion period (default  now)
+      responses:
+        200:
+          description: list of all the encounters for this user
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Encounter'
+      tags:
+        - beacons
+  /api/games:
+    post:
+      consumes:
+        - multipart/form-data
+      description: |
+        lists the currently available games
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+        -
+          name: start
+          type: string
+          format: 'date-time'
+          in: formData
+          description: start of the deletion period (default distant past)
+        -
+          name: end
+          type: string
+          format: 'date-time'
+          in: formData
+          description: end of the deletion period (default  now)
+      responses:
+        200:
+          description: lists all the currently active games
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Game'
+      tags:
+        - game
+  /api/games/new:
+    post:
+      consumes:
+        - multipart/form-data
+      description: |
+        creates a new game
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+      responses:
+        200:
+          description: success
+          schema:
+            $ref: '#/definitions/Game'
+      tags:
+        - game
+  /api/games/{gameid}:
+    get:
+      consumes:
+        - multipart/form-data
+      description: |
+        gets a specific game
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+        -
+          name: gameid
+          type: string
+          in: path
+          required: true
+      responses:
+        200:
+          description: success
+          schema:
+            $ref: '#/definitions/Game'
+      tags:
+        - game
+  /api/games/{gameid}/start:
+    post:
+      consumes:
+        - multipart/form-data
+      description: |
+        Starts the game.
+        Players will not be able to join anymore
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+        -
+          name: gameid
+          type: string
+          in: path
+          required: true
+      responses:
+        200:
+          description: success
+          schema:
+            $ref: '#/definitions/Game'
+        404:
+          description: game is invalid, or not your game
+      tags:
+        - game
+  /api/games/{gameid}/stop:
+    post:
+      consumes:
+        - multipart/form-data
+      description: |
+        Stops the game. No one can join anymore
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+        -
+          name: gameid
+          type: string
+          in: path
+          required: true
+      responses:
+        200:
+          description: success
+          schema:
+            $ref: '#/definitions/Game'
+        404:
+          description: game is invalid, or not your game
+      tags:
+        - game
+  /api/games/{gameid}/join:
+    post:
+      consumes:
+        - multipart/form-data
+      description: |
+        stops the game
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+        -
+          name: gameid
+          type: string
+          in: path
+          required: true
+      responses:
+        200:
+          description: success
+          schema:
+            $ref: '#/definitions/Game'
+        404:
+          description: game is invalid, or not joinable
+      tags:
+        - game
+  /api/games/{gameid}/leave:
+    post:
+      consumes:
+        - multipart/form-data
+      description: |
+        stops the game
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+        -
+          name: gameid
+          type: string
+          in: path
+          required: true
+      responses:
+        200:
+          description: success
+          schema:
+            $ref: '#/definitions/Game'
+        404:
+          description: game is invalid, or you can't leave it
+      tags:
+        - game
+  /api/games/{gameid}/teams:
+    get:
+      consumes:
+        - multipart/form-data
+      description: |
+        stops the game
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+        -
+          name: gameid
+          type: string
+          in: path
+          required: true
+      responses:
+        200:
+          description: success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Team'
+        404:
+          description: game is invalid
+      tags:
+        - game
+        - teams
+  /api/games/{gameid}/{teamid}/join:
+    post:
+      consumes:
+        - multipart/form-data
+      description: |
+        stops the game
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+        -
+          name: gameid
+          type: string
+          in: path
+          required: true
+        -
+          name: teamid
+          type: string
+          in: path
+          required: true
+      responses:
+        200:
+          description: success
+          schema:
+            $ref: '#/definitions/Team'
+        404:
+          description: game is invalid, or not your game, or team is invalid
+      tags:
+        - game
+        - teams
+  /api/games/{gameid}/{teamid}/leave:
+    post:
+      consumes:
+        - multipart/form-data
+      description: |
+        stops the game
+      parameters:
+        -
+          name: S-Token
+          type: string
+          in: header
+          required: true
+        -
+          name: gameid
+          type: string
+          in: path
+          required: true
+        -
+          name: teamid
+          type: string
+          in: path
+          required: true
+      responses:
+        200:
+          description: success
+          schema:
+            $ref: '#/definitions/Team'
+        404:
+          description: game is invalid, or not your game, or team is invalid
+      tags:
+        - game
+        - teams
+definitions:
+  Game:
+    description: a "game" joining participants together
+    properties:
+      id:
+        type: string
+        description: the id of the game
+      initiator:
+        type: string
+        description: the id of the user who started that game (can start/stop/delete)
+      participants:
+        description: the list of all the userids in this game
+        type: array
+        items:
+          type: string
+      startDate:
+        type: string
+        format: 'date-time'
+      endDate:
+        type: string
+        format: 'date-time'
+  Beacon:
+    properties:
+      id:
+        type: string
+        description: the id of the beacon in the DB (not the UUID)
+      major:
+        type: number
+        format: int32
+        description: half of the identification for the beacon
+      minor:
+        type: number
+        format: int32
+        description: half of the identification for the beacon
+  Team:
+    description: a "team" joining participants together
+    properties:
+      id:
+        type: string
+        description: the id of the team
+      game:
+        type: string
+        description: the id of the game
+      participants:
+        description: the list of all the usernames in this game
+        type: array
+        items:
+          type: string
+  Encounter:
+    description: an encounter between a user and a beacon
+    properties:
+      beaconid:
+        type: string
+      userid:
+        type: string
+      date:
+        type: string
+        format: 'date-time'
